@@ -56,20 +56,13 @@ class ToTensor(object):
         return {'wav_file': wav_file, 'spectrogram': torch.from_numpy(spectrogram), 'sampling_rate': sampling_rate, 'annotations': annotations}
 
 
-if __name__ == "__main__":
-	bat_dataset = BatAnnotationDataSet(json_file='C:\\Users\\ehopl\\Desktop\\Fourth Year\\Disseration\\bat_data_oct_2020_ug4\\annotations\\BritishBatCalls_MartynCooke_2018_1_sec_train_expert.json',
-                                   root_dir='C:\\Users\\ehopl\\Desktop\\Fourth Year\\Disseration\\bat_data_oct_2020_ug4\\audio\\mc_2018\\audio\\',
-                                   transform = ToTensor()
-                                  )
-	dataloader = DataLoader(bat_dataset, batch_size=4,
-                        shuffle=True, num_workers=0, collate_fn=lambda x: x)
+def build(image_set, args):
 
-	cnt = 0
+    PATHS = {
+        "train": ('C:\\Users\\ehopl\\Desktop\\Fourth Year\\Disseration\\bat_data_oct_2020_ug4\\annotations\\BritishBatCalls_MartynCooke_2018_1_sec_train_expert.json', 'C:\\Users\\ehopl\\Desktop\\Fourth Year\\Disseration\\bat_data_oct_2020_ug4\\audio\\mc_2018\\audio\\'),
+        "val": ('C:\\Users\\ehopl\\Desktop\\Fourth Year\\Disseration\\bat_data_oct_2020_ug4\\annotations\\BritishBatCalls_MartynCooke_2019_1_sec_train_expert.json', 'C:\\Users\\ehopl\\Desktop\\Fourth Year\\Disseration\\bat_data_oct_2020_ug4\\audio\\mc_2019\\audio\\'),
+    }
 
-	for i_batch, sample_batched in enumerate(dataloader):
-	    print('Batch number {}'.format(i_batch))
-	    bat_dataset.show_bat_annotation_batch(sample_batched)
-	    
-	    if cnt == 1:
-	        break
-	    cnt += 1
+    ann_file, audio_file = PATHS[image_set]
+    dataset = BatAnnotationDataSet(json_file = ann_file, root_dir= audio_file, transform=ToTensor())
+    return dataset
