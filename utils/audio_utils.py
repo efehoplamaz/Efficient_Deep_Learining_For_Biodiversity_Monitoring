@@ -123,8 +123,12 @@ def gen_mag_spectrogram(x, fs, ms, overlap_perc):
     noverlap = int(overlap_perc*nfft)
 
     # window data
-    step = nfft - noverlap
+    #sq_coeff = round(1718/512)
+    step = (nfft - noverlap) #* sq_coeff
     shape = (nfft, (x.shape[-1]-noverlap)//step)
+
+    #print(x.shape[-1], step, shape, fs)
+
     strides = (x.strides[0], step*x.strides[0])
     x_wins = np.lib.stride_tricks.as_strided(x, shape=shape, strides=strides)
 

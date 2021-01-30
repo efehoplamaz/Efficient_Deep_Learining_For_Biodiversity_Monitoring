@@ -10,25 +10,40 @@ from matplotlib.collections import PatchCollection
 def plot_bounding_box_patch(pred_nms, freq_scale, start_time):
     patch_collect = []
     for bb in range(len(pred_nms)):
-        xx = pred_nms[bb]['start_time'] - start_time
-        ww = pred_nms[bb]['end_time'] - pred_nms[bb]['start_time']
-        yy = pred_nms[bb]['low_freq'] / freq_scale
-        hh = (pred_nms[bb]['high_freq'] - pred_nms[bb]['low_freq']) / freq_scale
+        xx = pred_nms[bb][0]  #- start_time
+        ww = pred_nms[bb][2]
+        yy = (pred_nms[bb][1]) #/ freq_scale
+        hh = (pred_nms[bb][3]) #/ freq_scale
         patch_collect.append(patches.Rectangle((xx,yy),ww,hh, linewidth=1, edgecolor='w',
-                                 facecolor='none', alpha=pred_nms[bb]['det_prob']))
+                                 facecolor='none', alpha=1.0))
+    return patch_collect
+
+def plot_bounding_box_predictions(pred_nms):
+    patch_collect = []
+    for bb in range(len(pred_nms)):
+        xx = pred_nms[bb][0]  #- start_time
+        ww = pred_nms[bb][2]
+        yy = (pred_nms[bb][1]) #/ freq_scale
+        hh = (pred_nms[bb][3]) #/ freq_scale
+        patch_collect.append(patches.Rectangle((xx,yy),ww,hh, linewidth=1, edgecolor='r',
+                                 facecolor='none', alpha=1.0))
     return patch_collect
 
 
-def create_box_image(spec, fig, detections_ip, start_time, end_time, duration, params, max_val, hide_axis=True):
+def create_box_image(spec, fig, detections_ip, predictions, start_time, end_time, duration, params, max_val, hide_axis=True):
     # filter detections
     detections = []
-    for bb in detections_ip:
-        if (bb['start_time'] >= start_time) and (bb['end_time'] < end_time):
-            detections.append(bb)
+    for bb_anns in detections_ip:
+        if ((bb_anns[0]) >= 0) and ((bb_anns[0] + bb_anns[2]) < spec.shape[1]):
+            detections.append(bb_anns)
 
+    p = []
+    for bb_anns in predictions:
+        if ((bb_anns[0]) >= 0) and ((bb_anns[0] + bb_anns[2]) < spec.shape[1]):
+            p.append(bb_anns)
     # create figure
     freq_scale = 1000  # turn Hz in kHz
-    y_extent = [0, duration, params['min_freq']//freq_scale, params['max_freq']//freq_scale]
+    y_extent = [0, spec.shape[1], 0, spec.shape[0]]#[0, duration, params['min_freq']//freq_scale, params['max_freq']//freq_scale]
 
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     if hide_axis:
@@ -36,5 +51,8 @@ def create_box_image(spec, fig, detections_ip, start_time, end_time, duration, p
     fig.add_axes(ax)
     ax.imshow(spec, aspect='auto', cmap='plasma', extent=y_extent, vmin=0, vmax=max_val)
     boxes = plot_bounding_box_patch(detections, freq_scale, start_time)
+    pred_boxes = plot_bounding_box_predictions(p)
     ax.add_collection(PatchCollection(boxes, match_original=True))
+    ax.add_collection(PatchCollection(pred_boxes, match_original=True))
     plt.grid(False)
+

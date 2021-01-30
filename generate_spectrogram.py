@@ -34,10 +34,14 @@ def get_spectrogram_sampling_rate(audio_file):
 	# generate spectrogram for visualization
 	_, spec = au.generate_spectrogram(audio, sampling_rate, params, True, False)
 
-	return spec, sampling_rate
+	spec_duration = au.x_coords_to_time(spec.shape[1], sampling_rate, params['fft_win_length'], params['fft_overlap'])
+
+	#print(spec.shape, sampling_rate, audio.shape)
+
+	return spec, sampling_rate, spec_duration
 
 
-def display_spectrogram(audio_file, spec, sampling_rate, annotations):
+def display_spectrogram(audio_file, spec, sampling_rate, targets, predictions):
 
 	# fft parameters
 	params = {}
@@ -52,18 +56,18 @@ def display_spectrogram(audio_file, spec, sampling_rate, annotations):
 
 
 	# load annotations
-	anns = annotations
+	#anns = annotations
 
 	# extract out the boxes - also need to add an extra field for visualization
-	gt = [ann for ann in anns['annotation']]
-	for gg in gt:
-	    gg['det_prob'] = 1.0
+	#gt = [ann for ann in anns['annotation']]
+	#for gg in annotations:
+	    #gg['det_prob'] = 1.0
 	    
 	# display the annotations on top of the spectrogram
 	start_time = 0.0
 	fig = plt.figure(1, figsize=(spec.shape[1]/100, spec.shape[0]/100), dpi=100, frameon=False)
 	spec_duration = au.x_coords_to_time(spec.shape[1], sampling_rate, params['fft_win_length'], params['fft_overlap'])
-	viz.create_box_image(spec, fig, gt, start_time, start_time+spec_duration, spec_duration, params, spec.max()*1.1, False)
+	viz.create_box_image(spec, fig, targets['boxes'], predictions, start_time, start_time+spec_duration, spec_duration, params, spec.max()*1.1, False)
 	plt.ylabel('Freq - kHz')
 	plt.xlabel('Time - secs')
 	plt.title(os.path.basename(audio_file))
